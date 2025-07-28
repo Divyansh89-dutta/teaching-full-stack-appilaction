@@ -3,6 +3,7 @@ import cors from "cors";
 import dontenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js"
+import productRoutes from "./routes/productRoutes.js";
 
 dontenv.config();
 connectDB();
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.get("/", (req, res) => {
 //   res.send("API is running...");
 // });
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 export default app;
