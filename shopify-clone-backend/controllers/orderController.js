@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
-
+import { emitNotification } from "../utils/emitNotification.js";
+import { getIo } from "../utils/socket.js";
 // Create a new order
 export const createOrder = async (req, res) => {
   const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
@@ -18,6 +19,31 @@ export const createOrder = async (req, res) => {
     });
 
     const savedOrder = await order.save();
+
+    // update stock 
+    for (const item of items) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity },
+      });
+
+      const io = getIo();
+
+      // real-time notification to user
+      io.to(req.user._id.toString()).emit("orderPlaced", {
+        orderId: savedOrder._id,
+        message: "Your order has been placed successfully",
+      })
+      // admin dashboard notification
+      io.emit("NewOrder", savedOrder);
+      await emitNotification({
+        io,
+        to: req.user._id,
+        from: req.user._id,
+        type: "order",
+        massage: "Your order has been placed successfully",
+        data: { orderId: savedOrder._id },
+      })
+    }
     res.status(201).json(savedOrder);
   } catch (error) {
     res.status(500).json({
