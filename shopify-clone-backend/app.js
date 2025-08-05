@@ -6,6 +6,9 @@ import authRoutes from "./routes/authRoutes.js"
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import payementRoutes from "./routes/paymentRoutes.js";
+import addressRoute from"./routes/addressRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoute.js";
 
 dontenv.config();
 connectDB();
@@ -18,12 +21,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes 
-// app.get("/", (req, res) => {
-//   res.send("API is running...");
-// });
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/payments", payementRoutes);
+app.use("/api/address", addressRoute);
+app.use("/api/wishlist", wishlistRoutes);
 
 export default app;
