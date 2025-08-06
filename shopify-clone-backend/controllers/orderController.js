@@ -3,15 +3,29 @@ import { emitNotification } from "../utils/emitNotification.js";
 import { sendOrderConfirmationEmail } from "../utils/emailSander.js";
 import Product from "../models/Prodect.js";
 import { getIO } from "../utils/socket.js";
+import { applyDiscountCodeInternally, markCodeUsed } from "../utils/discountUtils.js";
 // Create a new order
 export const createOrder = async (req, res) => {
-  const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
+  let { items, shippingAddress, paymentMethod, totalAmount, discountCode } = req.body;
 
   if (!items || items.length === 0) {
     return res.status(400).json({ message: "No order items" });
   }
 
   try {
+    if (discountCode) {
+      const { discountPercent, error } = await applyDiscountCodeInternally(discountCode, req.user._id);
+
+      if (error) {
+        return res.status(400).json({ message: error });
+      }
+
+      const discountAmount = (discountPercent / 100) * totalAmount;
+      totalAmount -= discountAmount;
+
+      await markCodeUsed(discountCode, req.user._id);
+    }
+
     const order = new Order({
       user: req.user._id,
       items,
@@ -22,34 +36,32 @@ export const createOrder = async (req, res) => {
 
     const savedOrder = await order.save();
 
-    // update stock 
     for (const item of items) {
       await Product.findByIdAndUpdate(item.product, {
         $inc: { stock: -item.quantity },
       });
 
-      // send order confirmation email
-      await sendOrderConfirmationEmail(req.user.email, savedOrder)
-      
+      await sendOrderConfirmationEmail(req.user.email, savedOrder);
+
       const io = getIO();
 
-      // real-time notification to user
       io.to(req.user._id.toString()).emit("orderPlaced", {
         orderId: savedOrder._id,
         message: "Your order has been placed successfully",
-      })
-      // admin dashboard notification
+      });
+
       io.emit("NewOrder", savedOrder);
-      // save notification in DB
+
       await emitNotification({
         io,
         to: req.user._id,
         from: req.user._id,
         type: "order",
-        massage: "Your order has been placed successfully",
+        message: "Your order has been placed successfully",
         data: { orderId: savedOrder._id },
-      })
+      });
     }
+
     res.status(201).json(savedOrder);
   } catch (error) {
     res.status(500).json({

@@ -10,6 +10,7 @@ import payementRoutes from "./routes/paymentRoutes.js";
 import addressRoute from"./routes/addressRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoute.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import discountRoutes from "./routes/discountRoutes.js";
 
 dontenv.config();
 connectDB();
@@ -33,5 +34,6 @@ app.use("/api/payments", payementRoutes);
 app.use("/api/address", addressRoute);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/discounts", discountRoutes);
 
 export default app;
