@@ -1,6 +1,8 @@
 import Order from "../models/Order.js";
 import { emitNotification } from "../utils/emitNotification.js";
-import { getIo } from "../utils/socket.js";
+import { sendOrderConfirmationEmail } from "../utils/emailSander.js";
+import Product from "../models/Prodect.js";
+import { getIO } from "../utils/socket.js";
 // Create a new order
 export const createOrder = async (req, res) => {
   const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
@@ -26,7 +28,10 @@ export const createOrder = async (req, res) => {
         $inc: { stock: -item.quantity },
       });
 
-      const io = getIo();
+      // send order confirmation email
+      await sendOrderConfirmationEmail(req.user.email, savedOrder)
+      
+      const io = getIO();
 
       // real-time notification to user
       io.to(req.user._id.toString()).emit("orderPlaced", {
@@ -35,6 +40,7 @@ export const createOrder = async (req, res) => {
       })
       // admin dashboard notification
       io.emit("NewOrder", savedOrder);
+      // save notification in DB
       await emitNotification({
         io,
         to: req.user._id,
