@@ -16,7 +16,12 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.googleId;
+      },
+    },
+    googleId: {
+      type: String, //added to support Oauth
     },
     avatar: {
       public_id: String,
@@ -27,6 +32,16 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    wishList: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    address: {
+      Street: String,
+      city: String,
+      state: String,
+      zip: String,
+      country: String,
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

@@ -1,33 +1,57 @@
+// app.js
 import express from "express";
 import cors from "cors";
-import { connectRedis } from "./utils/redisClient.js";
-import dontenv from "dotenv";
+import dotenv from "dotenv";
+import session from "express-session";
 import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js"
+import { connectRedis } from "./utils/redisClient.js";
+
+// Routes
+import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import payementRoutes from "./routes/paymentRoutes.js";
-import addressRoute from"./routes/addressRoutes.js";
+import addressRoute from "./routes/addressRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoute.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import discountRoutes from "./routes/discountRoutes.js";
+import "./config/passport.js";
 
-dontenv.config();
+dotenv.config();
+
+// Connect DBs
 await connectDB();
 await connectRedis();
 
 const app = express();
 
-// MIDDLEWARES
-app.use(cors());
+// ✅ CORRECTED CORS SETUP
+app.use(cors({
+  origin: "http://localhost:5173",  // ✅ your frontend
+  credentials: true                // ✅ allow cookies and auth headers
+}));
+
+// Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes 
+// Sessions (for Passport/Google OAuth)
+app.use(session({
+  secret: process.env.SESSION_SECRET || "secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // true in production with HTTPS
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  },
+}));
+
+// ROUTES
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
+
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
