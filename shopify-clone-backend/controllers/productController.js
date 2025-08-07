@@ -1,5 +1,6 @@
-// controllers/productController.js
 import Product from "../models/Prodect.js";
+import { redisClient } from "../utils/redisClient.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // Create Product
 export const createProduct = async (req, res) => {
@@ -22,6 +23,9 @@ export const createProduct = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    // Invalidate cache
+    await redisClient.del("product:*");
+
     res.status(201).json(product);
   } catch (err) {
     res.status(500).json({
@@ -31,14 +35,41 @@ export const createProduct = async (req, res) => {
   }
 };
 
-
 // Get All Products
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const { keyword = "", brand, category, sort } = req.query;
+
+    const cacheKey = `product:${keyword}:${brand || ""}:${category || ""}:${sort || ""}`;
+    const cached = await redisClient.get(cacheKey);
+
+    if (cached) {
+      console.log("🔁 Cache hit");
+      return res.status(200).json(JSON.parse(cached));
+    }
+
+    const query = {};
+
+    if (keyword) query.title = { $regex: keyword, $options: "i" };
+    if (brand) query.brand = brand;
+    if (category) query.category = category;
+
+    console.log("🧾 Final Query:", query);
+
+    const sortOption =
+      sort === "asc" ? { price: 1 } :
+      sort === "desc" ? { price: -1 } :
+      { createdAt: -1 };
+
+    const products = await Product.find(query).sort(sortOption);
+
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(products));
+    console.log("📦 Cache miss — set new data");
+
     res.status(200).json(products);
-  } catch (err) {
-    res.status(500).json({ message: "Fetching products failed", error: err.message });
+  } catch (error) {
+    console.error("❌ Error fetching products:", error.message);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -61,10 +92,10 @@ export const updateProduct = async (req, res) => {
     const images = req.files?.map((file) => ({
       public_id: file.filename,
       url: file.path,
-    }));
+    })) || [];
 
     const updatedFields = { title, description, price, brand, category, stock };
-    if (images) updatedFields.images = images;
+    if (images.length > 0) updatedFields.images = images;
 
     const product = await Product.findByIdAndUpdate(
       req.params.id,
@@ -72,6 +103,7 @@ export const updateProduct = async (req, res) => {
       { new: true }
     );
 
+    await redisClient.del("product:*");
     res.status(200).json(product);
   } catch (err) {
     res.status(500).json({ message: "Update failed", error: err.message });
@@ -89,6 +121,7 @@ export const deleteProduct = async (req, res) => {
     }
 
     await product.deleteOne();
+    await redisClient.del("product:*");
     res.status(200).json({ message: "Product deleted" });
   } catch (err) {
     res.status(500).json({ message: "Delete failed", error: err.message });

@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { connectRedis } from "./utils/redisClient.js";
 import dontenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js"
@@ -13,7 +14,8 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import discountRoutes from "./routes/discountRoutes.js";
 
 dontenv.config();
-connectDB();
+await connectDB();
+await connectRedis();
 
 const app = express();
 
