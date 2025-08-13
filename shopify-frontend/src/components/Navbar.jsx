@@ -22,6 +22,7 @@ export default function Navbar() {
           <Link to="/cart" className="hover:text-blue-500">
             Cart
           </Link>
+          <Link to="/wishlist" className="hover:underline">Wishlist</Link>
           {user ? (
             <>
               <Link to="/profile" className="hover:text-blue-500">

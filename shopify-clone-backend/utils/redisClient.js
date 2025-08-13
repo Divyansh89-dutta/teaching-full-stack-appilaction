@@ -4,10 +4,10 @@ console.log("🔍 REDIS_URL from .env:", process.env.REDIS_URL);
 
 const redisClient = createClient({
   username: 'default',
-  password: 'iWEDtAe7E1D4ILrV8MWerMgW4HYFkQq1',
+  password: 'T6Iimns1LZpeloRr5N4spGcvY8mJdmkh',
   socket: {
-    host: 'redis-19118.c240.us-east-1-3.ec2.redns.redis-cloud.com',
-    port: 19118
+    host: 'redis-17714.crce182.ap-south-1-1.ec2.redns.redis-cloud.com',
+    port: 17714
   }
 });
 

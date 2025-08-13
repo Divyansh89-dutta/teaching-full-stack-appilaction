@@ -10,6 +10,8 @@ import AdminProductList from "./pages/admin/AdminProductList";
 import AdminRoute from "./components/AdminRoute";
 import AdminProductForm from "./pages/admin/AdminProductForm";
 import AdminOrderList from "./pages/admin/AdminOrderList";
+import Wishlist from "./pages/Wishlist";
+import Profile from "./pages/Profile";
 
 //Import admin pages
 
@@ -25,7 +27,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/product/:id" element={<ProductDetails />} />
-
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/profile" element={<Profile />} />
           {/* Admins routes for all the uses */}
             <Route
             path="/admin/products"

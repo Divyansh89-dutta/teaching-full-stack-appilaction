@@ -16,6 +16,7 @@ import addressRoute from "./routes/addressRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoute.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import discountRoutes from "./routes/discountRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import "./config/passport.js";
 
 dotenv.config();
@@ -61,5 +62,5 @@ app.use("/api/address", addressRoute);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/discounts", discountRoutes);
-
+app.use("/api/users", userRoutes);
 export default app;

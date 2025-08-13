@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "../redux/cartSlice";
+import { addToWishlist } from "../redux/wishlistSlice";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -46,6 +47,12 @@ export default function ProductDetails() {
           className="bg-blue-500 text-white px-6 py-2 rounded mt-6"
         >
           Add to Cart
+        </button>
+        <button
+          onClick={() => dispatch(addToWishlist(product._id))}
+          className="bg-pink-500 ml-5 text-white px-6 py-2 rounded"
+        >
+          ❤️ Wishlist
         </button>
       </div>
     </div>
